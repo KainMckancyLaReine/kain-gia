@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Kain &amp; Gia · Onze foto's</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0c0d;
+    --bg2:#161617;
+    --ink:#f4f3f1;
+    --soft:#9a9893;
+    --line:#2a2a2c;
+    --card:#1a1a1c;
+    --shadow:0 14px 38px rgba(0,0,0,.55);
+    --radius:6px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    text-rendering:optimizeLegibility;
+  }
+  img{-webkit-user-drag:none}
+
+  /* ---------- INTRO ---------- */
+  .hero{
+    min-height:100vh;
+    min-height:100svh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:max(32px,env(safe-area-inset-top)) 26px max(32px,env(safe-area-inset-bottom));
+    position:relative;overflow:hidden;
+    background:radial-gradient(120% 90% at 50% 0%, #1d1d1f 0%, var(--bg) 55%);
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(transparent 0 49.5%, rgba(255,255,255,.015) 49.5% 50%, transparent 50%) 0 0/100% 4px;
+    opacity:.5;
+  }
+  .heart{
+    width:46px;height:46px;margin-bottom:24px;color:var(--ink);
+    animation:beat 2.6s ease-in-out infinite;
+  }
+  @keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.14)}30%{transform:scale(1)}}
+  .names{
+    font-family:'Cormorant Garamond',serif;
+    font-weight:500;
+    font-size:clamp(58px,14vw,150px);
+    line-height:.92;letter-spacing:1px;
+    color:var(--ink);
+  }
+  .names .amp{font-style:italic;font-weight:400;display:inline-block;margin:0 .1em;color:var(--soft)}
+  .subtitle{
+    margin-top:22px;font-size:clamp(12px,2.4vw,16px);
+    letter-spacing:.42em;text-transform:uppercase;color:var(--soft);font-weight:400;padding-left:.42em;
+  }
+  .rule{width:54px;height:1px;background:var(--line);margin:26px auto 0}
+  .together{margin-top:22px;font-family:'Cormorant Garamond',serif;font-size:clamp(22px,5vw,30px);font-weight:500;color:var(--ink);letter-spacing:.5px}
+  .together .days{display:block;margin-top:7px;font-family:'Inter',sans-serif;font-style:normal;font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--soft);font-weight:400}
+  .count{margin-top:18px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:var(--soft)}
+  .scroll-cue{
+    position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+    color:var(--soft);font-size:11px;letter-spacing:.28em;text-transform:uppercase;
+    display:flex;flex-direction:column;align-items:center;gap:8px;animation:float 2.4s ease-in-out infinite;
+  }
+  @keyframes float{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
+  .scroll-cue svg{width:18px;height:18px}
+
+  /* ---------- GALLERY ---------- */
+  .gallery-wrap{padding:70px clamp(12px,5vw,72px) 90px}
+  @media(max-width:720px){.gallery-wrap{padding:48px 12px 70px}.tile{margin-bottom:10px}}
+  .gallery-head{text-align:center;margin-bottom:40px}
+  .gallery-head h2{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(28px,6vw,50px);color:var(--ink);font-style:italic}
+  .gallery-head p{margin-top:10px;color:var(--soft);font-size:14px;letter-spacing:.06em}
+  .toggle{
+    margin-top:22px;display:inline-flex;border:1px solid var(--line);border-radius:30px;overflow:hidden;
+    font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+  }
+  .toggle button{
+    background:transparent;color:var(--soft);border:none;padding:9px 20px;cursor:pointer;transition:all .25s ease;font-family:inherit;letter-spacing:inherit;
+  }
+  .toggle button.active{background:var(--ink);color:var(--bg)}
+
+  .grid{column-count:4;column-gap:14px}
+  @media(max-width:1100px){.grid{column-count:3}}
+  @media(max-width:720px){.grid{column-count:2;column-gap:10px}}
+  @media(max-width:360px){.grid{column-count:1}}
+  .tile{
+    break-inside:avoid;margin-bottom:14px;border-radius:var(--radius);overflow:hidden;
+    background:var(--card);box-shadow:var(--shadow);cursor:pointer;position:relative;
+    border:1px solid var(--line);
+    opacity:0;transform:translateY(14px);transition:transform .6s ease,opacity .6s ease;
+  }
+  .tile.in{opacity:1;transform:none}
+  .tile img{width:100%;display:block;transition:transform .6s ease,filter .5s ease;filter:grayscale(0)}
+  .grid.bw .tile img{filter:grayscale(1) contrast(1.05)}
+  .tile:hover img{transform:scale(1.045)}
+  .loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg2)}
+  .loader span{width:20px;height:20px;border:2px solid #333;border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---------- LIGHTBOX ---------- */
+  .lb{position:fixed;inset:0;background:rgba(0,0,0,.96);display:none;align-items:center;justify-content:center;z-index:50;opacity:0;transition:opacity .3s ease}
+  .lb.open{display:flex;opacity:1}
+  .lb img{max-width:92vw;max-height:86vh;border-radius:4px;box-shadow:0 24px 70px rgba(0,0,0,.7);user-select:none;transition:filter .4s ease}
+  .lb.bw img{filter:grayscale(1) contrast(1.05)}
+  .lb-close,.lb-nav{position:absolute;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff;cursor:pointer;backdrop-filter:blur(6px);transition:background .2s ease;display:flex;align-items:center;justify-content:center}
+  .lb-close{top:20px;right:22px;width:44px;height:44px;border-radius:50%;font-size:20px}
+  .lb-nav{top:50%;transform:translateY(-50%);width:54px;height:54px;border-radius:50%}
+  .lb-nav:hover,.lb-close:hover{background:rgba(255,255,255,.2)}
+  .lb-prev{left:18px}.lb-next{right:18px}
+  .lb-nav svg{width:24px;height:24px}
+  .lb-counter{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);color:#fff;font-size:12px;letter-spacing:.2em;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);padding:7px 16px;border-radius:30px;backdrop-filter:blur(6px)}
+  @media(max-width:600px){.lb-nav{width:44px;height:44px}.lb-prev{left:8px}.lb-next{right:8px}}
+
+  footer{text-align:center;padding:46px 20px 60px;color:var(--soft);font-size:12px;line-height:1.8;border-top:1px solid var(--line);margin-top:20px}
+</style>
+</head>
+<body>
+
+  <!-- INTRO -->
+  <header class="hero">
+    <svg class="heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 21s-7.5-4.6-10-9.2C.4 8.4 2 4.8 5.4 4.2 7.6 3.8 9.4 5 12 7.6 14.6 5 16.4 3.8 18.6 4.2 22 4.8 23.6 8.4 22 11.8 19.5 16.4 12 21 12 21z"/></svg>
+    <h1 class="names">Kain<span class="amp">&amp;</span>Gia</h1>
+    <p class="subtitle">Onze mooiste momenten</p>
+    <div class="rule"></div>
+    <p class="together" id="together"></p>
+    <p class="count" id="count"></p>
+    <div class="scroll-cue">
+      <span>Bekijk</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </header>
+
+  <!-- GALLERY -->
+  <main class="gallery-wrap">
+    <div class="gallery-head">
+      <h2>Wij samen</h2>
+      <p>Klik op een foto om groter te bekijken</p>
+      <div class="toggle" id="toggle">
+        <button data-mode="color" class="active">Kleur</button>
+        <button data-mode="bw">Zwart-wit</button>
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <footer>Met liefde gemaakt voor Kain &amp; Gia · 2026</footer>
+
+  <!-- LIGHTBOX -->
+  <div class="lb" id="lb">
+    <button class="lb-close" id="lbClose" aria-label="Sluiten">&times;</button>
+    <button class="lb-nav lb-prev" id="lbPrev" aria-label="Vorige"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <img id="lbImg" alt="">
+    <button class="lb-nav lb-next" id="lbNext" aria-label="Volgende"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+    <div class="lb-counter" id="lbCounter"></div>
+  </div>
+
+<script>
+/* ====== FOTO'S — voeg later een datum toe voor de tijdlijn, bv. {f:"IMG_3086.JPG", datum:"2025-07-14"} ====== */
+const PHOTOS = [
+  {f:"IMG_1887.jpeg"},{f:"IMG_3086.JPG"},{f:"IMG_3658 2.jpeg"},{f:"IMG_3659 2.jpeg"},
+  {f:"IMG_0869.JPG"},{f:"IMG_0985.jpeg"},{f:"IMG_0987.jpeg"},{f:"IMG_4220.jpeg"},
+  {f:"IMG_1504.jpeg"},{f:"IMG_4680.jpeg"},{f:"IMG_4684.JPEG"},{f:"IMG_0479.jpeg"},
+  {f:"IMG_4702.jpeg"},{f:"IMG_5202 2.JPEG"},{f:"IMG_5208.jpeg"},{f:"IMG_5217.jpeg"},
+  {f:"IMG_5321 2.jpeg"},{f:"IMG_2089.jpeg"},{f:"IMG_5649.jpeg"},{f:"IMG_5656.JPG"},
+  {f:"IMG_6644.JPEG"},{f:"IMG_6646.JPEG"},{f:"IMG_3085.jpeg"},{f:"IMG_1438.JPG"},
+  {f:"IMG_1436.jpeg"},{f:"IMG_1435.JPG"},{f:"IMG_0564.jpg"},
+  {f:"26F83FAD-ED46-4DDB-8E92-3804DEC28797.JPG"},{f:"IMG_0723.jpg"},
+  {f:"D40B7F7B-FF3F-458D-A35D-6994DE614EBE.JPG"},
+  {f:"DE395432-1D2D-45F2-A781-AEBE242C985A 2.JPG"},{f:"IMG_2160.jpeg"},
+  {f:"5EADC859-FE25-4145-9980-D809AB6D747D.JPG"},{f:"IMG_2157.jpg"},
+  {f:"IMG_2226.jpeg"},{f:"IMG_2293.jpg"},{f:"IMG_2410.jpeg"},{f:"IMG_4484.JPG"},
+  {f:"IMG_3293.PNG"},{f:"IMG_3294.PNG"},{f:"IMG_3295.PNG"},{f:"IMG_3296.PNG"},
+  {f:"IMG_3806.jpeg"},{f:"IMG_1214.jpeg"},{f:"IMG_3871.jpeg"},{f:"IMG_3938.jpeg"},
+  {f:"IMG_4715.JPG"},{f:"IMG_3957.JPG"},{f:"IMG_4144.JPG"},{f:"IMG_4679.JPG"},
+  {f:"IMG_5050.JPG"},{f:"IMG_5837.jpeg"},{f:"IMG_5888.jpeg"},{f:"IMG_5850.jpeg"},
+  {f:"IMG_5868.jpg"},{f:"IMG_5954.jpeg"},{f:"IMG_6150.JPG"},{f:"IMG_7242.PNG"},
+  {f:"590be1b8-813c-4eb7-afb1-aacce2f9edf7.jpg"},{f:"IMG_6632.jpeg"},
+  {f:"566ab5be-983e-4b1a-9c8c-330edcc522c1.JPG"},{f:"IMG_7394.JPG"},
+  {f:"f0989863-587f-4749-bc59-fddb47df7827.JPEG"},{f:"img_0192 2.jpg"},
+  {f:"img_0192 3.JPG"},{f:"IMG_7405.jpg"},{f:"IMG_5198.jpeg"}
+];
+
+const grid = document.getElementById('grid');
+const url = name => encodeURIComponent(name);
+const displayable = [];
+
+document.getElementById('count').textContent = PHOTOS.length + ' herinneringen';
+
+/* ====== SAMEN-SINDS TELLER — pas hier de startdatum aan (jaar, maand 0-11, dag) ====== */
+const START = new Date(2021, 10, 28); // 28 november 2021
+function renderTogether(){
+  const now = new Date();
+  let y = now.getFullYear() - START.getFullYear();
+  let m = now.getMonth() - START.getMonth();
+  let d = now.getDate() - START.getDate();
+  if(d < 0) m--;
+  if(m < 0){ m += 12; y--; }
+  const days = Math.floor((now - START) / 86400000);
+  let parts = [y + ' jaar'];
+  if(m > 0) parts.push(m + (m === 1 ? ' maand' : ' maanden'));
+  const el = document.getElementById('together');
+  el.innerHTML = parts.join(' en ') + ' samen' +
+    '<span class="days">' + days.toLocaleString('nl-NL') + ' dagen vol liefde</span>';
+}
+renderTogether();
+setInterval(renderTogether, 60000);
+
+PHOTOS.forEach((p) => {
+  const tile = document.createElement('div');
+  tile.className = 'tile';
+  const loader = document.createElement('div');
+  loader.className = 'loader'; loader.innerHTML = '<span></span>';
+  tile.appendChild(loader);
+  const img = document.createElement('img');
+  img.loading = 'lazy'; img.alt = 'Kain & Gia';
+  img.onload = () => { loader.remove(); registerForLightbox(tile, img.src); };
+  img.onerror = () => { loader.remove(); tile.style.display='none'; };
+  img.src = url(p.f);
+  tile.appendChild(img);
+  grid.appendChild(tile);
+});
+
+/* ---------- KLEUR / ZWART-WIT TOGGLE ---------- */
+const lb = document.getElementById('lb');
+document.getElementById('toggle').addEventListener('click', e => {
+  const btn = e.target.closest('button'); if(!btn) return;
+  document.querySelectorAll('#toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const bw = btn.dataset.mode === 'bw';
+  grid.classList.toggle('bw', bw);
+  lb.classList.toggle('bw', bw);
+});
+
+/* ---------- LIGHTBOX ---------- */
+const lbImg = document.getElementById('lbImg');
+const lbCounter = document.getElementById('lbCounter');
+let current = 0;
+function registerForLightbox(tile, src){
+  const idx = displayable.length;
+  displayable.push(src);
+  tile.addEventListener('click', () => openLb(idx));
+}
+function openLb(i){ current=i; lbImg.src=displayable[current]; lb.classList.add('open'); updateCounter(); document.body.style.overflow='hidden'; }
+function closeLb(){ lb.classList.remove('open'); document.body.style.overflow=''; }
+function nav(d){ current=(current+d+displayable.length)%displayable.length; lbImg.src=displayable[current]; updateCounter(); }
+function updateCounter(){ lbCounter.textContent=(current+1)+' / '+displayable.length; }
+document.getElementById('lbClose').onclick = closeLb;
+document.getElementById('lbPrev').onclick = e => { e.stopPropagation(); nav(-1); };
+document.getElementById('lbNext').onclick = e => { e.stopPropagation(); nav(1); };
+lb.addEventListener('click', e => { if(e.target === lb) closeLb(); });
+document.addEventListener('keydown', e => {
+  if(!lb.classList.contains('open')) return;
+  if(e.key==='Escape') closeLb();
+  if(e.key==='ArrowLeft') nav(-1);
+  if(e.key==='ArrowRight') nav(1);
+});
+let touchX=null;
+lb.addEventListener('touchstart', e => touchX=e.touches[0].clientX);
+lb.addEventListener('touchend', e => {
+  if(touchX===null) return;
+  const dx=e.changedTouches[0].clientX-touchX;
+  if(Math.abs(dx)>50) nav(dx<0?1:-1);
+  touchX=null;
+});
+
+/* ---------- fade-in bij scrollen ---------- */
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(en => { if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+}, {rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.tile').forEach(t => io.observe(t));
+</script>
+</body>
+</html>
