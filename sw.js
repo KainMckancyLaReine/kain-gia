@@ -1,5 +1,5 @@
 /* Service worker — offline-bruikbaar, maar haalt de nieuwste versie van de site op */
-const CACHE = 'kaingia-v2';
+const CACHE = 'kaingia-v3';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {
@@ -21,9 +21,10 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
 
   const isHTML = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+  const isLanding = /\/landing\.(jpe?g|png)$/i.test(new URL(req.url).pathname);
 
-  if (isHTML) {
-    /* pagina zelf: eerst netwerk (nieuwste versie), val terug op cache als offline */
+  if (isHTML || isLanding) {
+    /* pagina en landingsfoto: eerst netwerk (nieuwste versie), val terug op cache als offline */
     e.respondWith(
       fetch(req).then((res) => {
         const copy = res.clone();
