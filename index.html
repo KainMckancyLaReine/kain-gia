@@ -67,7 +67,13 @@
     position:relative;overflow:hidden;
     background:radial-gradient(130% 100% at 50% 16%, #242426 0%, #131314 44%, #0a0a0b 100%);
   }
-  .hero::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(transparent 0 49.5%, rgba(255,255,255,.018) 49.5% 50%, transparent 50%) 0 0/100% 4px;opacity:.5}
+  .hero::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(transparent 0 49.5%, rgba(255,255,255,.018) 49.5% 50%, transparent 50%) 0 0/100% 4px;opacity:.5}
+  /* dof gedimde achtergrondfoto achter de tekst */
+  .hero-photo{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.05);filter:grayscale(.25) brightness(.5) contrast(1.04);transition:opacity 1.3s ease}
+  .hero-photo.on{opacity:1}
+  .hero-photo-veil{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity 1.3s ease;
+    background:radial-gradient(120% 100% at 50% 38%, rgba(0,0,0,.40), rgba(0,0,0,.70) 70%, rgba(8,8,9,.93)),linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.28) 45%, rgba(12,12,13,.96))}
+  .hero-photo-veil.on{opacity:1}
   .hero-content{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center}
   .heart{width:42px;height:42px;margin-bottom:22px;color:#fff;animation:beat 2.6s ease-in-out infinite;filter:drop-shadow(0 2px 14px rgba(0,0,0,.6))}
   @keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.14)}30%{transform:scale(1)}}
@@ -159,6 +165,8 @@
 
   <!-- INTRO / LANDING -->
   <header class="hero">
+    <div class="hero-photo" id="heroPhoto"></div>
+    <div class="hero-photo-veil" id="heroVeil"></div>
     <div class="flyfield" id="flyfield"></div>
     <div class="hero-content">
       <svg class="heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 21s-7.5-4.6-10-9.2C.4 8.4 2 4.8 5.4 4.2 7.6 3.8 9.4 5 12 7.6 14.6 5 16.4 3.8 18.6 4.2 22 4.8 23.6 8.4 22 11.8 19.5 16.4 12 21 12 21z"/></svg>
@@ -248,6 +256,25 @@ function renderStats(){
 }
 renderStats();
 setInterval(renderStats, 60000);
+
+/* ====== dof gedimde achtergrondfoto op het landingsscherm ======
+   Zet je foto in DEZE map met de naam 'landing.jpg' (of .jpeg/.png) en hij verschijnt automatisch achter de tekst. */
+(function(){
+  const candidates = ["landing.jpg","landing.jpeg","landing.png","landing.JPG","landing.JPEG","landing.PNG"];
+  const photo = document.getElementById('heroPhoto');
+  const veil  = document.getElementById('heroVeil');
+  (function tryNext(i){
+    if(i >= candidates.length) return;            // niets gevonden -> nette donkere achtergrond blijft
+    const img = new Image();
+    img.onload  = () => {
+      photo.style.backgroundImage = "url('" + encodeURIComponent(candidates[i]) + "')";
+      photo.classList.add('on');
+      veil.classList.add('on');
+    };
+    img.onerror = () => tryNext(i + 1);
+    img.src = encodeURIComponent(candidates[i]);
+  })(0);
+})();
 
 /* ====== PRELOADER: foto-mozaïek hart + zwevende hartjes ====== */
 (function(){
