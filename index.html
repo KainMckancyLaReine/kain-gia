@@ -69,10 +69,10 @@
   }
   .hero::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(transparent 0 49.5%, rgba(255,255,255,.018) 49.5% 50%, transparent 50%) 0 0/100% 4px;opacity:.5}
   /* dof gedimde achtergrondfoto achter de tekst */
-  .hero-photo{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.05);filter:grayscale(.25) brightness(.5) contrast(1.04);transition:opacity 1.3s ease}
+  .hero-photo{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.05);filter:grayscale(.1) brightness(.85) contrast(1.02);transition:opacity 1.3s ease}
   .hero-photo.on{opacity:1}
   .hero-photo-veil{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity 1.3s ease;
-    background:radial-gradient(120% 100% at 50% 38%, rgba(0,0,0,.40), rgba(0,0,0,.70) 70%, rgba(8,8,9,.93)),linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.28) 45%, rgba(12,12,13,.96))}
+    background:radial-gradient(120% 100% at 50% 40%, rgba(0,0,0,.14), rgba(0,0,0,.34) 72%, rgba(8,8,9,.74)),linear-gradient(180deg, rgba(0,0,0,.26), rgba(0,0,0,.06) 45%, rgba(12,12,13,.88))}
   .hero-photo-veil.on{opacity:1}
   .hero-content{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center}
   .heart{width:42px;height:42px;margin-bottom:22px;color:#fff;animation:beat 2.6s ease-in-out infinite;filter:drop-shadow(0 2px 14px rgba(0,0,0,.6))}
