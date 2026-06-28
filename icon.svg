@@ -1,17 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="36%" r="75%">
-      <stop offset="0%" stop-color="#242426"/>
-      <stop offset="60%" stop-color="#131314"/>
+    <radialGradient id="bg" cx="50%" cy="34%" r="80%">
+      <stop offset="0%" stop-color="#2b2b2e"/>
+      <stop offset="55%" stop-color="#161617"/>
       <stop offset="100%" stop-color="#0a0a0b"/>
     </radialGradient>
-    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="55%" stop-color="#cfcdc8"/>
-      <stop offset="100%" stop-color="#9a9893"/>
+      <stop offset="42%" stop-color="#d7d5d0"/>
+      <stop offset="60%" stop-color="#9a9893"/>
+      <stop offset="100%" stop-color="#e8e7e3"/>
     </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <path fill="url(#shine)" d="M256 405s-120-73.6-150-138C84 222 96 168 152 156c33-7 62 12 84 40 22-28 51-47 84-40 56 12 68 66 46 111-30 64.4-150 138-150 138z" transform="translate(0 -8)"/>
-  <text x="256" y="452" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="78" fill="#f4f3f1" font-style="italic">K &amp; G</text>
+
+  <!-- achtergrond -->
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+  <!-- subtiele glans bovenin -->
+  <ellipse cx="256" cy="120" rx="230" ry="150" fill="#ffffff" opacity="0.05"/>
+  <!-- fijne rand binnen de veilige zone -->
+  <rect x="34" y="34" width="444" height="444" rx="92" fill="none" stroke="#ffffff" stroke-opacity="0.10" stroke-width="2"/>
+
+  <!-- hartje -->
+  <path filter="url(#soft)" fill="url(#silver)"
+        d="M256 176c-9-12-22-19-37-19-25 0-44 19-44 44 0 30 33 52 81 86 48-34 81-56 81-86 0-25-19-44-44-44-15 0-28 7-37 19z"/>
+
+  <!-- monogram K & G -->
+  <text x="256" y="392" text-anchor="middle" filter="url(#soft)"
+        font-family="Georgia, 'Times New Roman', serif" font-size="188" fill="url(#silver)">
+    <tspan>K</tspan><tspan font-style="italic" dx="2" dy="0">&amp;</tspan><tspan dx="2">G</tspan>
+  </text>
 </svg>
