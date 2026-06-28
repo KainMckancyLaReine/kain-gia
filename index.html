@@ -16,6 +16,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
   :root{
     --bg:#0c0c0d;
@@ -144,6 +146,34 @@
   .tl-tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease,filter .4s ease}
   .tl-tile:hover img{transform:scale(1.06)}
   #timeline.bw .tl-tile img{filter:grayscale(1) contrast(1.05)}
+  .tl-tile{position:relative}
+
+  /* ---------- FAVORIETEN + ONDERSCHRIFTEN ---------- */
+  .grid.fav-only .tile:not(.is-fav){display:none}
+  .fav-btn{position:absolute;top:9px;right:9px;width:34px;height:34px;border:none;border-radius:50%;
+    background:rgba(0,0,0,.42);backdrop-filter:blur(4px);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    opacity:0;transition:opacity .2s ease,transform .15s ease;z-index:4}
+  .fav-btn svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2}
+  .tile:hover .fav-btn,.tl-tile:hover .fav-btn{opacity:1}
+  .is-fav > .fav-btn{opacity:1}
+  .is-fav > .fav-btn svg{fill:#e0586b;stroke:#e0586b}
+  .fav-btn:active{transform:scale(.84)}
+  @media(hover:none){.fav-btn{opacity:1;background:rgba(0,0,0,.34)}}
+
+  .lb-fav{position:absolute;top:20px;left:22px;width:44px;height:44px;border-radius:50%;cursor:pointer;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;transition:background .2s ease}
+  .lb-fav:hover{background:rgba(255,255,255,.2)}
+  .lb-fav svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2}
+  .lb-fav.on svg{fill:#e0586b;stroke:#e0586b}
+  .lb-cap{position:absolute;left:50%;transform:translateX(-50%);bottom:60px;max-width:min(86vw,620px);
+    color:#fff;font-size:14px;line-height:1.5;text-align:center;cursor:text;
+    background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(6px);padding:9px 16px;border-radius:14px}
+  .lb-cap.empty .lb-cap-text{color:rgba(255,255,255,.5);font-style:italic}
+  .lb-cap-edit{margin-left:8px;opacity:.55;font-size:12px}
+  .lb-burst{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:150px;height:150px;pointer-events:none;opacity:0;z-index:6}
+  .lb-burst svg{width:100%;height:100%;fill:#fff;filter:drop-shadow(0 6px 26px rgba(0,0,0,.5))}
+  .lb-burst.go{animation:burst .9s ease forwards}
+  @keyframes burst{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}18%{opacity:.95}45%{transform:translate(-50%,-50%) scale(1.05);opacity:.95}100%{transform:translate(-50%,-50%) scale(1.4);opacity:0}}
 
   .grid{column-count:4;column-gap:14px}
   @media(max-width:1100px){.grid{column-count:3}}
@@ -212,6 +242,7 @@
       <div class="toggle" id="viewToggle">
         <button data-view="grid" class="active">Raster</button>
         <button data-view="timeline">Tijdlijn</button>
+        <button data-view="fav">Favorieten</button>
       </div>
       <div class="toggle" id="toggle">
         <button data-mode="color" class="active">Kleur</button>
@@ -219,6 +250,7 @@
       </div>
     </div>
     <div class="grid" id="grid"></div>
+    <div id="favEmpty" class="tl-loading" style="display:none">Nog geen favorieten. Tik op het ♥ rechtsboven een foto, of <strong>dubbeltik</strong> een foto in het groot om 'm te bewaren.</div>
     <div id="timeline"></div>
   </main>
 
@@ -227,9 +259,12 @@
   <!-- LIGHTBOX -->
   <div class="lb" id="lb">
     <button class="lb-close" id="lbClose" aria-label="Sluiten">&times;</button>
+    <button class="lb-fav" id="lbFav" aria-label="Favoriet"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>
     <button class="lb-nav lb-prev" id="lbPrev" aria-label="Vorige"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
     <img id="lbImg" alt="">
     <button class="lb-nav lb-next" id="lbNext" aria-label="Volgende"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+    <div class="lb-cap empty" id="lbCap"><span class="lb-cap-text">Onderschrift toevoegen…</span><span class="lb-cap-edit">✎</span></div>
+    <div class="lb-burst" id="lbBurst"></div>
     <div class="lb-counter" id="lbCounter"></div>
   </div>
 
@@ -262,6 +297,33 @@ const PHOTOS = [
 const grid = document.getElementById('grid');
 const url = name => encodeURIComponent(name);
 const displayable = [];
+
+/* ====== FAVORIETEN + ONDERSCHRIFTEN (bewaard op dit apparaat) ====== */
+const FAV_KEY = 'kg_favs', CAP_KEY = 'kg_caps';
+let favs = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]'));
+let caps = JSON.parse(localStorage.getItem(CAP_KEY) || '{}');
+let db = null;
+const HEART_PATH = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
+const isFav = f => favs.has(f);
+function setFav(f, on){
+  if(on) favs.add(f); else favs.delete(f);
+  localStorage.setItem(FAV_KEY, JSON.stringify([...favs]));
+  document.querySelectorAll('[data-file]').forEach(el => { if(el.dataset.file === f) el.classList.toggle('is-fav', on); });
+  updateFavView();
+  if(db){ const r = db.ref('favs/' + safeKey(f)); on ? r.set(f) : r.remove(); }
+}
+function toggleFav(f){ setFav(f, !favs.has(f)); }
+function makeFavBtn(f){
+  const b = document.createElement('button');
+  b.className = 'fav-btn'; b.type = 'button'; b.setAttribute('aria-label','Favoriet');
+  b.innerHTML = "<svg viewBox='0 0 24 24'><path d='" + HEART_PATH + "'/></svg>";
+  b.addEventListener('click', e => { e.stopPropagation(); toggleFav(f); });
+  return b;
+}
+function updateFavView(){
+  const note = document.getElementById('favEmpty');
+  if(note) note.style.display = (grid.classList.contains('fav-only') && favs.size === 0) ? 'block' : 'none';
+}
 
 /* ====== SAMEN-SINDS + STATISTIEK — pas hier de startdatum aan (jaar, maand 0-11, dag) ====== */
 const START = new Date(2021, 10, 28); // 28 november 2021
@@ -384,15 +446,18 @@ setInterval(renderStats, 60000);
 PHOTOS.forEach((p) => {
   const tile = document.createElement('div');
   tile.className = 'tile';
+  tile.dataset.file = p.f;
+  if(isFav(p.f)) tile.classList.add('is-fav');
   const loader = document.createElement('div');
   loader.className = 'loader'; loader.innerHTML = '<span></span>';
   tile.appendChild(loader);
   const img = document.createElement('img');
   img.loading = 'lazy'; img.alt = 'Kain & Gia';
-  img.onload = () => { loader.remove(); registerForLightbox(tile, img.src); };
+  img.onload = () => { loader.remove(); registerForLightbox(tile, img.src, p.f); };
   img.onerror = () => { loader.remove(); tile.style.display='none'; };
   img.src = url(p.f);
   tile.appendChild(img);
+  tile.appendChild(makeFavBtn(p.f));
   grid.appendChild(tile);
 });
 
@@ -412,18 +477,51 @@ const lbImg = document.getElementById('lbImg');
 const lbCounter = document.getElementById('lbCounter');
 let current = 0;
 let lbList = displayable;
-function registerForLightbox(tile, src){
+const lbFav = document.getElementById('lbFav');
+const lbCap = document.getElementById('lbCap');
+const lbBurst = document.getElementById('lbBurst');
+
+function registerForLightbox(tile, src, file){
   const idx = displayable.length;
-  displayable.push(src);
+  displayable.push({src, file});
   tile.addEventListener('click', () => { lbList = displayable; openLb(idx); });
 }
-function openLb(i){ current=i; lbImg.src=lbList[current]; lb.classList.add('open'); updateCounter(); document.body.style.overflow='hidden'; }
+function openLb(i){ current=i; renderLb(); lb.classList.add('open'); document.body.style.overflow='hidden'; }
 function closeLb(){ lb.classList.remove('open'); document.body.style.overflow=''; }
-function nav(d){ current=(current+d+lbList.length)%lbList.length; lbImg.src=lbList[current]; updateCounter(); }
-function updateCounter(){ lbCounter.textContent=(current+1)+' / '+lbList.length; }
+function nav(d){ current=(current+d+lbList.length)%lbList.length; renderLb(); }
+function renderLb(){
+  const it = lbList[current];
+  lbImg.src = it.src;
+  lbCounter.textContent = (current+1) + ' / ' + lbList.length;
+  lbFav.classList.toggle('on', isFav(it.file));
+  renderCaption(it.file);
+}
+function renderCaption(file){
+  const c = caps[file] || '';
+  lbCap.classList.toggle('empty', !c);
+  lbCap.querySelector('.lb-cap-text').textContent = c || 'Onderschrift toevoegen…';
+}
+function showBurst(){
+  lbBurst.innerHTML = "<svg viewBox='0 0 24 24'><path d='" + HEART_PATH + "'/></svg>";
+  lbBurst.classList.remove('go'); void lbBurst.offsetWidth; lbBurst.classList.add('go');
+}
+function likeCurrent(){ const it = lbList[current]; setFav(it.file, true); lbFav.classList.add('on'); showBurst(); }
+
 document.getElementById('lbClose').onclick = closeLb;
 document.getElementById('lbPrev').onclick = e => { e.stopPropagation(); nav(-1); };
 document.getElementById('lbNext').onclick = e => { e.stopPropagation(); nav(1); };
+lbFav.addEventListener('click', e => { e.stopPropagation(); const it=lbList[current]; toggleFav(it.file); lbFav.classList.toggle('on', isFav(it.file)); });
+lbCap.addEventListener('click', e => {
+  e.stopPropagation();
+  const it = lbList[current];
+  const v = prompt('Onderschrift voor deze foto:', caps[it.file] || '');
+  if(v === null) return;
+  if(v.trim()) caps[it.file] = v.trim(); else delete caps[it.file];
+  localStorage.setItem(CAP_KEY, JSON.stringify(caps));
+  if(db){ const r = db.ref('caps/' + safeKey(it.file)); v.trim() ? r.set({f: it.file, t: v.trim()}) : r.remove(); }
+  renderCaption(it.file);
+});
+lbImg.addEventListener('dblclick', e => { e.stopPropagation(); likeCurrent(); });
 lb.addEventListener('click', e => { if(e.target === lb) closeLb(); });
 document.addEventListener('keydown', e => {
   if(!lb.classList.contains('open')) return;
@@ -431,13 +529,18 @@ document.addEventListener('keydown', e => {
   if(e.key==='ArrowLeft') nav(-1);
   if(e.key==='ArrowRight') nav(1);
 });
-let touchX=null;
+let touchX=null, lastTap=0;
 lb.addEventListener('touchstart', e => touchX=e.touches[0].clientX);
 lb.addEventListener('touchend', e => {
+  if(e.target === lbImg){          // dubbeltik op de foto = favoriet
+    const now = Date.now();
+    if(now - lastTap < 320){ likeCurrent(); lastTap = 0; return; }
+    lastTap = now;
+  }
   if(touchX===null) return;
-  const dx=e.changedTouches[0].clientX-touchX;
-  if(Math.abs(dx)>50) nav(dx<0?1:-1);
-  touchX=null;
+  const dx = e.changedTouches[0].clientX - touchX;
+  if(Math.abs(dx) > 50) nav(dx < 0 ? 1 : -1);
+  touchX = null;
 });
 
 /* ---------- fade-in bij scrollen ---------- */
@@ -463,10 +566,12 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
     const btn = e.target.closest('button'); if(!btn) return;
     vToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    const timelineView = btn.dataset.view === 'timeline';
-    gridEl.style.display = timelineView ? 'none' : '';
-    tl.style.display = timelineView ? 'block' : 'none';
-    if(timelineView) build();
+    const v = btn.dataset.view;
+    gridEl.style.display = (v === 'timeline') ? 'none' : '';
+    tl.style.display = (v === 'timeline') ? 'block' : 'none';
+    gridEl.classList.toggle('fav-only', v === 'fav');
+    updateFavView();
+    if(v === 'timeline') build();
   });
 
   async function getDate(file){
@@ -480,13 +585,14 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   function addTile(row, file, srcs){
     const src = encodeURIComponent(file);
     const idx = srcs.length;
-    srcs.push(src);
-    const t = document.createElement('div'); t.className = 'tl-tile';
+    srcs.push({src, file});
+    const t = document.createElement('div'); t.className = 'tl-tile'; t.dataset.file = file;
+    if(isFav(file)) t.classList.add('is-fav');
     const img = document.createElement('img'); img.loading = 'lazy'; img.alt = 'Kain & Gia';
     img.onerror = () => { t.style.display = 'none'; };
     img.src = src;
     t.addEventListener('click', () => { lbList = srcs; openLb(idx); });
-    t.appendChild(img); row.appendChild(t);
+    t.appendChild(img); t.appendChild(makeFavBtn(file)); row.appendChild(t);
   }
 
   function newSection(title){
@@ -530,6 +636,53 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 
   function bwSync(){ tl.classList.toggle('bw', gridEl.classList.contains('bw')); }
   document.getElementById('toggle').addEventListener('click', () => setTimeout(bwSync, 0));
+})();
+
+/* ============================================================
+   GEDEELDE DATABASE (Firebase) — sync favorieten & onderschriften
+   tussen Kains en Gia's telefoon. Zolang de config leeg is,
+   werkt alles gewoon lokaal op het eigen apparaat.
+   >>> PLAK je firebaseConfig hieronder tussen de { } <<<
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAbuflkd283tbbOf7BBbVDgBYhk9UsPps8",
+  authDomain: "kain-gia.firebaseapp.com",
+  databaseURL: "https://kain-gia-default-rtdb.firebaseio.com",
+  projectId: "kain-gia",
+  storageBucket: "kain-gia.firebasestorage.app",
+  messagingSenderId: "931000767962",
+  appId: "1:931000767962:web:e5f6167929ea2f49ad9ce3"
+};
+
+function safeKey(f){ return f.replace(/[.#$/\[\]]/g, '_'); }
+
+function refreshAllFavUI(){
+  document.querySelectorAll('[data-file]').forEach(el => el.classList.toggle('is-fav', favs.has(el.dataset.file)));
+  if(typeof lb !== 'undefined' && lb.classList.contains('open') && lbList[current]) lbFav.classList.toggle('on', isFav(lbList[current].file));
+  updateFavView();
+}
+function refreshCaptionUI(){
+  if(typeof lb !== 'undefined' && lb.classList.contains('open') && lbList[current]) renderCaption(lbList[current].file);
+}
+
+(function initDB(){
+  try{
+    if(!FIREBASE_CONFIG.databaseURL || !window.firebase) return;   // nog niet ingesteld -> alleen lokaal
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+    db.ref('favs').on('value', snap => {
+      favs = new Set(Object.values(snap.val() || {}));
+      localStorage.setItem(FAV_KEY, JSON.stringify([...favs]));
+      refreshAllFavUI();
+    });
+    db.ref('caps').on('value', snap => {
+      const val = snap.val() || {};
+      caps = {};
+      Object.values(val).forEach(o => { if(o && o.f) caps[o.f] = o.t; });
+      localStorage.setItem(CAP_KEY, JSON.stringify(caps));
+      refreshCaptionUI();
+    });
+  }catch(e){ db = null; }
 })();
 </script>
 </body>
