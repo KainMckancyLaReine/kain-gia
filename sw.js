@@ -1,5 +1,5 @@
-/* Service worker — maakt de app offline-bruikbaar en installeerbaar */
-const CACHE = 'kaingia-v1';
+/* Service worker — offline-bruikbaar, maar haalt de nieuwste versie van de site op */
+const CACHE = 'kaingia-v2';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {
@@ -16,18 +16,32 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-/* cache-first: foto's en bestanden worden bewaard zodra ze één keer geladen zijn */
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
-  e.respondWith(
-    caches.match(req).then((cached) =>
-      cached ||
+
+  const isHTML = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+
+  if (isHTML) {
+    /* pagina zelf: eerst netwerk (nieuwste versie), val terug op cache als offline */
+    e.respondWith(
       fetch(req).then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
         return res;
-      }).catch(() => cached)
-    )
-  );
+      }).catch(() => caches.match(req).then((r) => r || caches.match('./index.html')))
+    );
+  } else {
+    /* foto's en bestanden: eerst cache (snel + offline), anders netwerk */
+    e.respondWith(
+      caches.match(req).then((cached) =>
+        cached ||
+        fetch(req).then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+          return res;
+        }).catch(() => cached)
+      )
+    );
+  }
 });
