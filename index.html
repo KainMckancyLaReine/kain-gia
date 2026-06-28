@@ -4,9 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Kain &amp; Gia · Onze foto's</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kain & Gia">
+<link rel="apple-touch-icon" href="landing.jpg">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js" defer></script>
 <style>
   :root{
     --bg:#0c0c0d;
@@ -120,6 +129,21 @@
     background:transparent;color:var(--soft);border:none;padding:9px 20px;cursor:pointer;transition:all .25s ease;font-family:inherit;letter-spacing:inherit;
   }
   .toggle button.active{background:var(--ink);color:var(--bg)}
+  .gallery-head .toggle{margin:14px 6px 0}
+
+  /* ---------- TIJDLIJN ---------- */
+  #timeline{display:none;max-width:1100px;margin:0 auto}
+  .tl-loading{text-align:center;color:var(--soft);padding:46px 14px;font-size:14px;max-width:580px;margin:0 auto;line-height:1.7}
+  .tl-section{margin-bottom:40px}
+  .tl-head{display:flex;align-items:center;gap:16px;margin:0 0 16px;color:var(--ink);font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:500;font-size:clamp(22px,4vw,32px)}
+  .tl-head::before,.tl-head::after{content:"";height:1px;background:var(--line);flex:1}
+  .tl-head span{white-space:nowrap}
+  .tl-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  @media(max-width:600px){.tl-row{grid-template-columns:repeat(2,1fr);gap:8px}}
+  .tl-tile{aspect-ratio:1/1;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:var(--card);cursor:pointer;box-shadow:var(--shadow)}
+  .tl-tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease,filter .4s ease}
+  .tl-tile:hover img{transform:scale(1.06)}
+  #timeline.bw .tl-tile img{filter:grayscale(1) contrast(1.05)}
 
   .grid{column-count:4;column-gap:14px}
   @media(max-width:1100px){.grid{column-count:3}}
@@ -185,15 +209,20 @@
     <div class="gallery-head">
       <h2>Wij samen</h2>
       <p>Klik op een foto om groter te bekijken</p>
+      <div class="toggle" id="viewToggle">
+        <button data-view="grid" class="active">Raster</button>
+        <button data-view="timeline">Tijdlijn</button>
+      </div>
       <div class="toggle" id="toggle">
         <button data-mode="color" class="active">Kleur</button>
         <button data-mode="bw">Zwart-wit</button>
       </div>
     </div>
     <div class="grid" id="grid"></div>
+    <div id="timeline"></div>
   </main>
 
-  <footer>Met liefde gemaakt voor Kain &amp; Gia · 2026</footer>
+  <footer>Dev By KainMckancy · 2026</footer>
 
   <!-- LIGHTBOX -->
   <div class="lb" id="lb">
@@ -382,15 +411,16 @@ document.getElementById('toggle').addEventListener('click', e => {
 const lbImg = document.getElementById('lbImg');
 const lbCounter = document.getElementById('lbCounter');
 let current = 0;
+let lbList = displayable;
 function registerForLightbox(tile, src){
   const idx = displayable.length;
   displayable.push(src);
-  tile.addEventListener('click', () => openLb(idx));
+  tile.addEventListener('click', () => { lbList = displayable; openLb(idx); });
 }
-function openLb(i){ current=i; lbImg.src=displayable[current]; lb.classList.add('open'); updateCounter(); document.body.style.overflow='hidden'; }
+function openLb(i){ current=i; lbImg.src=lbList[current]; lb.classList.add('open'); updateCounter(); document.body.style.overflow='hidden'; }
 function closeLb(){ lb.classList.remove('open'); document.body.style.overflow=''; }
-function nav(d){ current=(current+d+displayable.length)%displayable.length; lbImg.src=displayable[current]; updateCounter(); }
-function updateCounter(){ lbCounter.textContent=(current+1)+' / '+displayable.length; }
+function nav(d){ current=(current+d+lbList.length)%lbList.length; lbImg.src=lbList[current]; updateCounter(); }
+function updateCounter(){ lbCounter.textContent=(current+1)+' / '+lbList.length; }
 document.getElementById('lbClose').onclick = closeLb;
 document.getElementById('lbPrev').onclick = e => { e.stopPropagation(); nav(-1); };
 document.getElementById('lbNext').onclick = e => { e.stopPropagation(); nav(1); };
@@ -415,6 +445,92 @@ const io = new IntersectionObserver((entries) => {
   entries.forEach(en => { if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
 }, {rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.tile').forEach(t => io.observe(t));
+
+/* ====== SERVICE WORKER (PWA / offline) — werkt zodra de site live staat ====== */
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+/* ====== TIJDLIJN-WEERGAVE — leest de opnamedatums uit de foto's (EXIF) ====== */
+(function(){
+  const tl = document.getElementById('timeline');
+  const gridEl = document.getElementById('grid');
+  const vToggle = document.getElementById('viewToggle');
+  const MND = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+  let built = false;
+
+  vToggle.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if(!btn) return;
+    vToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const timelineView = btn.dataset.view === 'timeline';
+    gridEl.style.display = timelineView ? 'none' : '';
+    tl.style.display = timelineView ? 'block' : 'none';
+    if(timelineView) build();
+  });
+
+  async function getDate(file){
+    try{
+      if(!window.exifr) return null;
+      const d = await exifr.parse(encodeURIComponent(file), {pick:['DateTimeOriginal','CreateDate','ModifyDate']});
+      return d ? (d.DateTimeOriginal || d.CreateDate || d.ModifyDate || null) : null;
+    }catch(e){ return null; }
+  }
+
+  function addTile(row, file, srcs){
+    const src = encodeURIComponent(file);
+    const idx = srcs.length;
+    srcs.push(src);
+    const t = document.createElement('div'); t.className = 'tl-tile';
+    const img = document.createElement('img'); img.loading = 'lazy'; img.alt = 'Kain & Gia';
+    img.onerror = () => { t.style.display = 'none'; };
+    img.src = src;
+    t.addEventListener('click', () => { lbList = srcs; openLb(idx); });
+    t.appendChild(img); row.appendChild(t);
+  }
+
+  function newSection(title){
+    const s = document.createElement('div'); s.className = 'tl-section';
+    const h = document.createElement('h3'); h.className = 'tl-head';
+    h.innerHTML = '<span>' + title + '</span>';
+    const r = document.createElement('div'); r.className = 'tl-row';
+    s.appendChild(h); s.appendChild(r); tl.appendChild(s);
+    return r;
+  }
+
+  async function build(){
+    if(built) return; built = true;
+    tl.innerHTML = '<div class="tl-loading">Opnamedatums worden gelezen…</div>';
+    const items = await Promise.all(PHOTOS.map(async p => ({ f:p.f, dt: await getDate(p.f) })));
+    const dated = items.filter(i => i.dt).sort((a,b) => new Date(a.dt) - new Date(b.dt));
+    const undated = items.filter(i => !i.dt);
+    tl.innerHTML = '';
+    const srcs = [];
+
+    if(dated.length === 0){
+      tl.innerHTML = '<div class="tl-loading">De foto’s op datum gesorteerd verschijnen automatisch zodra de site live staat (GitHub Pages). Hieronder staan voorlopig al je foto’s.</div>';
+      const r = newSection('Alle foto’s');
+      items.forEach(it => addTile(r, it.f, srcs));
+      bwSync(); return;
+    }
+
+    let curKey = '', row = null;
+    dated.forEach(it => {
+      const d = new Date(it.dt);
+      const key = d.getFullYear() + '-' + d.getMonth();
+      if(key !== curKey){ curKey = key; row = newSection(MND[d.getMonth()] + ' ' + d.getFullYear()); }
+      addTile(row, it.f, srcs);
+    });
+    if(undated.length){
+      const r = newSection('Zonder datum');
+      undated.forEach(it => addTile(r, it.f, srcs));
+    }
+    bwSync();
+  }
+
+  function bwSync(){ tl.classList.toggle('bw', gridEl.classList.contains('bw')); }
+  document.getElementById('toggle').addEventListener('click', () => setTimeout(bwSync, 0));
+})();
 </script>
 </body>
 </html>
